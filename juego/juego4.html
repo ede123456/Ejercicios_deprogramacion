@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Piedra, Papel o Tijeras</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(135deg, #1d2671, #c33764);
+        color: white;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        margin-bottom: 10px;
+    }
+    .game {
+        margin-top: 20px;
+    }
+    button {
+        background: #ff9800;
+        border: none;
+        color: white;
+        font-size: 18px;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    button:hover {
+        background: #e68900;
+    }
+    #resultado {
+        font-size: 20px;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+    #marcador {
+        margin-top: 20px;
+        font-size: 18px;
+    }
+
+    /* Contenedor de manos */
+    .jugadas {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+    }
+    .jugador, .computadora {
+        text-align: center;
+    }
+    .jugador img, .computadora img {
+        width: 120px;
+        transition: transform 0.2s;
+    }
+    .moviendo {
+        animation: mover 0.2s infinite;
+    }
+    @keyframes mover {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0); }
+    }
+    </style>
+</head>
+<body>
+    <h1>✊✋✌️ Piedra, Papel o Tijeras</h1>
+    <p>Elige cuántas rondas jugarás:</p>
+    <select id="rondas">
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="7">7</option>
+    </select>
+    <button onclick="iniciarJuego()">Iniciar</button>
+
+    <div class="game" id="game" style="display:none;">
+        <h2>"ELIGE TU JUGADA MOR"</h2>
+        <div class="jugadas">
+            <div class="jugador">
+                <h3>Jugador</h3>
+                <img id="mano-jugador" src="imagenes/piedra.png.png" alt="Mano jugador">
+            </div>
+            <div class="computadora">
+                <h3>EDE (Computadora)</h3>
+                <img id="mano-computadora" src="imagenes/piedra.png.png" alt="Mano computadora">
+            </div>
+        </div>
+        <button onclick="jugar('piedra')">✊ Piedra</button>
+        <button onclick="jugar('papel')">✋ Papel</button>
+        <button onclick="jugar('tijeras')">✌️ Tijeras</button>
+
+        <div id="resultado"></div>
+        <div id="marcador"></div>
+    </div>
+
+    <script>
+    const opciones = ["piedra", "papel", "tijeras"];
+const imagenes = {
+    piedra: "imagenes/piedra.png.png",
+    papel: "imagenes/papel.png.png",
+    tijeras: "imagenes/tijera.png.png"
+};
+
+
+
+    let rondas = 0;
+    let rondaActual = 0;
+    let victorias = 0, derrotas = 0, empates = 0;
+    let ultimaJugada = null;
+
+    function iniciarJuego() {
+        rondas = parseInt(document.getElementById("rondas").value);
+        rondaActual = 0;
+        victorias = derrotas = empates = 0;
+        ultimaJugada = null;
+        document.getElementById("game").style.display = "block";
+        document.getElementById("resultado").innerText = "";
+        document.getElementById("marcador").innerText = `Marcador → Victorias: 0 | Derrotas: 0 | Empates: 0`;
+    }
+
+    function jugadaInteligente(jugador) {
+        if (jugador === "piedra") return "papel";
+        if (jugador === "papel") return "tijeras";
+        if (jugador === "tijeras") return "piedra";
+        return opciones[Math.floor(Math.random() * opciones.length)];
+    }
+
+    function jugar(jugador) {
+        if (rondaActual >= rondas) return;
+        rondaActual++;
+
+        let manoJugador = document.getElementById("mano-jugador");
+        let manoComputadora = document.getElementById("mano-computadora");
+
+        // Animar manos
+        manoJugador.classList.add("moviendo");
+        manoComputadora.classList.add("moviendo");
+        document.getElementById("resultado").innerText = "¡Jugando...!";
+
+        setTimeout(() => {
+            manoJugador.classList.remove("moviendo");
+            manoComputadora.classList.remove("moviendo");
+
+            let computadora = ultimaJugada ? jugadaInteligente(ultimaJugada) : opciones[Math.floor(Math.random() * opciones.length)];
+            ultimaJugada = jugador;
+
+            // Cambiar imágenes según elección
+            manoJugador.src = imagenes[jugador];
+            manoComputadora.src = imagenes[computadora];
+
+            // Determinar resultado
+            let resultado = "";
+            if (jugador === computadora) {
+                resultado = `🤝 Empate EDE también eligió ${jugador}.`;
+                empates++;
+            } else if (
+                (jugador === "piedra" && computadora === "tijeras") ||
+                (jugador === "tijeras" && computadora === "papel") ||
+                (jugador === "papel" && computadora === "piedra")
+            ) {
+                resultado = `🏆 DIABL GANASTE: EDE eligió ${computadora}`;
+                victorias++;
+            } else {
+                resultado = `💀 WEJE PERDISTE LOQUIT@ | EDE eligió: ${computadora}`;
+                derrotas++;
+            }
+
+            document.getElementById("resultado").innerText = `Ronda ${rondaActual}/${rondas} → ${resultado}`;
+            document.getElementById("marcador").innerText =
+                `Marcador → Victorias: ${victorias} | Derrotas: ${derrotas} | Empates: ${empates}`;
+
+            if (rondaActual === rondas) {
+                setTimeout(() => {
+                    let final = "";
+                    if (victorias > derrotas) final = "🏆 ¡Felicidades! Ganaste la partida.";
+                    else if (derrotas > victorias) final = "💀 Lo siento, perdiste la partida.";
+                    else final = "🤝 La partida terminó en empate.";
+                    alert(final);
+                }, 300);
+            }
+        }, 1000); // 1 segundo de animación
+    }
+    </script>
+</body>
+</html>
